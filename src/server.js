@@ -1,10 +1,27 @@
 import Fastify from 'fastify'
+import { StatusCodes } from 'http-status-codes'
 import { env } from '~/config/environment'
-import { CLOSE_CONNECT, CONNECT_DB } from './config/mongodb'
+import { CLOSE_CONNECT, CONNECT_DB } from '~/config/mongodb'
+import { homeRoute } from '~/routes/v1'
+import { notFoundHandler } from './middlewares/handleError'
+import { boardRoute } from './routes/v1/boardRoute'
 const exitHook = require('async-exit-hook')
 
 const fastify = Fastify({
     logger: true
+})
+
+fastify.setErrorHandler((error, _, res) => {
+    console.log(error, `This error has status code ${error.statusCode} and error validation: ${error.validation}`)
+    if (error.statusCode === StatusCodes.BAD_REQUEST && error.validationContext) {
+        res.status(error.statusCode).send({ message: error.message, errorCode: error.statusCode })
+    }
+    else if (res.statusCode === StatusCodes.INTERNAL_SERVER_ERROR) {
+        fastify.log.error(error.message)
+        res.send({ message: 'Something is wrong!', errorCode: res.statusCode })
+    } else {
+        res.send({ message: error.message, errorCode: res.statusCode })
+    }
 })
 
 const START_SERVER = () => {
@@ -12,26 +29,17 @@ const START_SERVER = () => {
     const port = env.APP_PORT
 
     // Declare a route
-    fastify.get('/', async (req, res) => {
-        // console.log(
-        //     sortArrayByOtherArray(
-        //         [
-        //             { id: 'id-1', name: 'One' },
-        //             { id: 'id-2', name: 'Two' },
-        //             { id: 'id-3', name: 'Three' },
-        //             { id: 'id-4', name: 'Four' },
-        //             { id: 'id-5', name: 'Five' }
-        //         ],
-        //         ['id-5', 'id-4', 'id-2', 'id-3', 'id-1'],
-        //         'id'
-        //     )
-        // )
-        res.send('<h1>Hello World!</h1><hr>')
-    })
+    fastify.register(homeRoute, { prefix: '/v1' })
+    fastify.register(boardRoute, { prefix: '/v1/board' })
+
+    // Handle notFoundError
+    fastify.setNotFoundHandler(notFoundHandler)
 
     // Run the server!
     fastify.listen({ port }, err => {
-        if (err) throw err
+        if (err) {
+            fastify.log.error(err)
+        }
         fastify.log.info(`Trello API is running at ${hostname}:${port}/`)
     })
 
