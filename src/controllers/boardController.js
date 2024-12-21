@@ -1,11 +1,12 @@
+import { createNewBoard } from '~/services/boardService'
+import ServerError from '~/utils/serverError'
 const { StatusCodes } = require('http-status-codes')
 
-export const createNew = (req, res) => {
+export const createNew = async (req, res) => {
     try {
-        res.status(StatusCodes.CREATED).send({ message: 'Create board succeed!' })
+        const data = await createNewBoard(req.body)
+        res.status(StatusCodes.CREATED).send({ message: 'Create board succeed!', data })
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-            error: error.message
-        })
+        throw new ServerError(error.message)
     }
 }

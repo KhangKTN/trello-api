@@ -1,14 +1,23 @@
 import { StatusCodes } from 'http-status-codes'
+import { env } from '~/config/environment'
 
-export const errorHandler = (fastify, error, _, res) => {
-    if (res.statusCode === StatusCodes.INTERNAL_SERVER_ERROR) {
-        fastify.log.error(error.message)
-        res.send({ message: 'Something is wrong!', errorCode: res.statusCode })
-    } else {
-        res.send({ message: error.message, errorCode: res.statusCode })
+export const errorHandler = (error, req, res) => {
+    const { name, statusCode, message, stack } = error
+
+    const responseError = { name, statusCode, message, stack }
+    if (statusCode === StatusCodes.INTERNAL_SERVER_ERROR) {
+        req.log.error(message)
+        responseError.message = 'Something is wrong!'
+
+        // Do not return stack in production env
+        if (env.BUILD_MODE !== 'dev') {
+            delete responseError.stack
+        }
     }
+
+    res.status(statusCode).send(responseError)
 }
 
-export const notFoundHandler = (req, res) => {
+export const notFoundHandler = (_, res) => {
     res.status(StatusCodes.NOT_FOUND).send({ message: 'Resource is not exists!', errCode: res.statusCode })
 }
