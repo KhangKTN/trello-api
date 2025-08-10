@@ -1,9 +1,9 @@
 import Fastify from 'fastify'
-import { env } from '~/config/environment'
-import { CLOSE_CONNECT, CONNECT_DB } from '~/config/mongodb'
+import { env } from '~/config/env.config'
+import { CLOSE_CONNECT, CONNECT_DB } from '~/config/mongodb.config'
 import { homeRoute } from '~/routes/v1'
-import { errorHandler, notFoundHandler } from './middlewares/handleError'
-import { boardRoute } from './routes/v1/boardRoute'
+import { errorHandler, notFoundHandler } from './middlewares/error-handler.middleware'
+import { boardRoute } from './routes/v1/board.route'
 const exitHook = require('async-exit-hook')
 
 const fastify = Fastify({
@@ -20,11 +20,11 @@ const START_SERVER = () => {
     fastify.register(homeRoute, { prefix: '/v1' })
     fastify.register(boardRoute, { prefix: '/v1/board' })
 
-    // Handle notFoundError
+    // Handle not found
     fastify.setNotFoundHandler(notFoundHandler)
 
     // Run the server!
-    fastify.listen({ port }, err => {
+    fastify.listen({ port }, (err) => {
         if (err) {
             fastify.log.error(err)
         }
@@ -38,7 +38,7 @@ const START_SERVER = () => {
 }
 
 // Immediately Invoked Function Expression (IIFE)
-(async () => {
+;(async () => {
     try {
         fastify.log.info('Start connect to MongoDB Atlas')
         await CONNECT_DB()

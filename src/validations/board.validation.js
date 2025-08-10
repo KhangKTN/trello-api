@@ -5,9 +5,9 @@ const boardSchema = Joi.object({
     description: Joi.string().required().min(3).max(500).trim().strict()
 })
 
-export const boardValid = {
+export const boardValidate = {
     schema: { body: boardSchema },
     validatorCompiler: ({ schema }) => {
-        return data => schema.validate(data, { abortEarly: false })
+        return (data) => schema.validate(data, { abortEarly: false })
     }
 }

@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import { env } from '~/config/environment'
+import { env } from '~/config/env.config'
 
 export const errorHandler = (error, req, res) => {
     const { name, statusCode, message, stack } = error
