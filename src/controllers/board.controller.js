@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import boardService from '~/services/board.service'
-import ServerError from '~/utils/server-error.util'
+import { ServerError } from '~/utils/error.util'
 
 const create = async (req, res) => {
     try {

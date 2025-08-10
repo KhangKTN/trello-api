@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import { env } from '~/config/env.config'
 
-export const errorHandler = (error, req, res) => {
+const errorHandler = (error, req, res) => {
     const { name, statusCode, message, stack } = error
 
     const responseError = { name, statusCode, message, stack }
@@ -15,9 +15,11 @@ export const errorHandler = (error, req, res) => {
         }
     }
 
-    res.status(statusCode).send(responseError)
+    return res.status(statusCode).send(responseError)
 }
 
-export const notFoundHandler = (_, res) => {
-    res.status(StatusCodes.NOT_FOUND).send({ message: 'Resource is not exists!', errCode: res.statusCode })
+const notFoundHandler = (_, res) => {
+    return res.status(StatusCodes.NOT_FOUND).send({ message: 'Resource is not exists!', errCode: res.statusCode })
 }
+
+export default { errorHandler, notFoundHandler }

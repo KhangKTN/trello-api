@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.22.10",
+    "@fastify/cors": "^11.1.0",
     "@fastify/multipart": "^9.0.1",
     "async-exit-hook": "^2.0.1",
     "cross-env": "^7.0.3",

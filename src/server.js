@@ -1,27 +1,32 @@
+import fastifyCors from '@fastify/cors'
+import exitHook from 'async-exit-hook'
 import Fastify from 'fastify'
 import { env } from '~/config/env.config'
 import { CLOSE_CONNECT, CONNECT_DB } from '~/config/mongodb.config'
 import { homeRoute } from '~/routes/v1'
-import { errorHandler, notFoundHandler } from './middlewares/error-handler.middleware'
+import { corsOptions } from './config/cors.config'
+import errorHandlerMiddleware from './middlewares/error-handler.middleware'
 import { boardRoute } from './routes/v1/board.route'
-const exitHook = require('async-exit-hook')
 
 const fastify = Fastify({
     logger: true
 })
 
-fastify.setErrorHandler(errorHandler)
+fastify.setErrorHandler(errorHandlerMiddleware.errorHandler)
 
 const START_SERVER = () => {
     const hostname = env.APP_HOST
     const port = env.APP_PORT
+
+    // Register CORS
+    fastify.register(fastifyCors, corsOptions)
 
     // Declare a route
     fastify.register(homeRoute, { prefix: '/v1' })
     fastify.register(boardRoute, { prefix: '/v1/board' })
 
     // Handle not found
-    fastify.setNotFoundHandler(notFoundHandler)
+    fastify.setNotFoundHandler(errorHandlerMiddleware.notFoundHandler)
 
     // Run the server!
     fastify.listen({ port }, (err) => {
