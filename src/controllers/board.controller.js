@@ -18,6 +18,9 @@ const getDetail = async (req, res) => {
             return res.status(StatusCodes.BAD_REQUEST).send({ message: 'Missed ID param!' })
         }
         const data = await boardService.findById(req.params.id)
+        if (!data) {
+            return res.status(StatusCodes.OK).send({ message: 'Get board by ID not found!', data })
+        }
         return res.status(StatusCodes.OK).send({ message: 'Get board by ID successfully!', data })
     } catch (error) {
         throw new ServerError(error.message)

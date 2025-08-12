@@ -1,6 +1,9 @@
+import { cloneDeep } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb.config'
 import boardModal from '~/models/Board.model'
+import { cardModel } from '~/models/Card.model'
+import { columnModel } from '~/models/Column.model'
 import { slugify } from '~/utils/formatter.util'
 
 const create = async (data) => {
@@ -10,17 +13,50 @@ const create = async (data) => {
     }
     const validData = await boardModal.validateBeforeSave(newBoard)
     let createdBoard = await GET_DB().collection(boardModal.BOARD_COLLECTION_NAME).insertOne(validData)
+
     if (createdBoard?.insertedId) {
-        createdBoard = await findById(createdBoard?.insertedId)
+        createdBoard = await findById(createdBoard?.insertedId.toString())
     }
 
     return createdBoard
 }
 
 const findById = async (id) => {
-    return await GET_DB()
+    const board = await GET_DB()
         .collection(boardModal.BOARD_COLLECTION_NAME)
-        .findOne({ _id: ObjectId.createFromHexString(id) }, { projection: { createdAt: 0, updatedAt: 0 } })
+        .aggregate([
+            { $match: { _id: new ObjectId(id), _isDestroy: false } },
+            {
+                $lookup: {
+                    from: columnModel.COLUMN_COLLECTION_NAME,
+                    localField: '_id',
+                    foreignField: 'boardId',
+                    as: 'columns'
+                }
+            },
+            {
+                $lookup: {
+                    from: cardModel.CARD_COLLECTION_NAME,
+                    localField: '_id',
+                    foreignField: 'boardId',
+                    as: 'cards'
+                }
+            }
+        ])
+        .toArray()
+
+    if (!board[0]) {
+        return {}
+    }
+
+    // Put the cards in each column
+    const result = cloneDeep(board[0])
+    result.columns.forEach((column) => {
+        column.cards = result.cards.filter((card) => card.columnId.equals(column._id))
+    })
+    delete result['cards']
+
+    return result
 }
 
 export default { create, findById }
