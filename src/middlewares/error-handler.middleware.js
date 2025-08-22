@@ -2,9 +2,9 @@ import { StatusCodes } from 'http-status-codes'
 import { env } from '~/config/env.config'
 
 const errorHandler = (error, req, res) => {
-    const { name, statusCode, message, stack } = error
-
+    const { name, statusCode = StatusCodes.INTERNAL_SERVER_ERROR, message, stack } = error
     const responseError = { name, statusCode, message, stack }
+
     if (statusCode === StatusCodes.INTERNAL_SERVER_ERROR) {
         req.log.error(message)
         responseError.message = 'Something is wrong!'
@@ -15,7 +15,7 @@ const errorHandler = (error, req, res) => {
         }
     }
 
-    return res.status(statusCode).send(responseError)
+    return res.code(statusCode).send({ ...responseError })
 }
 
 const notFoundHandler = (_, res) => {

@@ -3,7 +3,7 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/rule.util'
 
 const CARD_COLLECTION_NAME = 'cards'
 
-const CARD_SCHEMA = Joi.object({
+const cardSchema = Joi.object({
     boardId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
     columnId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
     title: Joi.string().required().min(3).max(50).trim().strict(),
@@ -13,7 +13,12 @@ const CARD_SCHEMA = Joi.object({
     _isDestroy: Joi.boolean().default(false)
 })
 
+const validateBeforeSave = async (data) => {
+    return await cardSchema.validateAsync(data, { abortEarly: false })
+}
+
 export const cardModel = {
     CARD_COLLECTION_NAME,
-    CARD_SCHEMA
+    cardSchema,
+    validateBeforeSave
 }

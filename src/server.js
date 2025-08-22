@@ -7,6 +7,8 @@ import { homeRoute } from '~/routes/v1'
 import { corsOptions } from './config/cors.config'
 import errorHandlerMiddleware from './middlewares/error-handler.middleware'
 import { boardRoute } from './routes/v1/board.route'
+import { cardRoute } from './routes/v1/card.route'
+import { columnRoute } from './routes/v1/column.route'
 
 const fastify = Fastify({
     logger: true
@@ -24,6 +26,8 @@ const START_SERVER = () => {
     // Declare a route
     fastify.register(homeRoute, { prefix: '/v1' })
     fastify.register(boardRoute, { prefix: '/v1/board' })
+    fastify.register(columnRoute, { prefix: '/v1/column' })
+    fastify.register(cardRoute, { prefix: '/v1/card' })
 
     // Handle not found
     fastify.setNotFoundHandler(errorHandlerMiddleware.notFoundHandler)
