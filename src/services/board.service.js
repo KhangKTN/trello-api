@@ -5,7 +5,7 @@ import boardModal from '~/models/Board.model'
 import { cardModel } from '~/models/Card.model'
 import { columnModel } from '~/models/Column.model'
 import { ServerError } from '~/utils/error.util'
-import { slugify } from '~/utils/formatter.util'
+import { createPlaceholderCard, slugify } from '~/utils/formatter.util'
 
 const create = async (data) => {
     try {
@@ -27,7 +27,7 @@ const findById = async (id) => {
         const board = await GET_DB()
             .collection(boardModal.BOARD_COLLECTION_NAME)
             .aggregate([
-                { $match: { _id: new ObjectId(id), _isDestroy: false } },
+                { $match: { _id: ObjectId.createFromHexString(id), _isDestroy: false } },
                 {
                     $lookup: {
                         from: columnModel.COLUMN_COLLECTION_NAME,
@@ -55,9 +55,31 @@ const findById = async (id) => {
         const result = cloneDeep(board[0])
         result.columns.forEach((column) => {
             column.cards = result.cards.filter((card) => card.columnId.equals(column._id))
+
+            // Add place card into column empty
+            if (!column.cards.length) {
+                column.cards = [createPlaceholderCard(column)]
+                column.cardOrderIds = [`${column._id}-placeholder-card`]
+            }
         })
         delete result['cards']
 
+        return result
+    } catch (error) {
+        throw new ServerError(error)
+    }
+}
+
+const updateColumnOrderIds = async ({ boardId, columnOrderIds }) => {
+    const updateOrderIds = columnOrderIds.map((id) => ObjectId.createFromHexString(id))
+    try {
+        const result = await GET_DB()
+            .collection(boardModal.BOARD_COLLECTION_NAME)
+            .findOneAndUpdate(
+                { _id: ObjectId.createFromHexString(boardId) },
+                { $set: { columnOrderIds: updateOrderIds } },
+                { returnDocument: 'after' }
+            )
         return result
     } catch (error) {
         throw new ServerError(error)
@@ -77,8 +99,10 @@ const pushColumnOrderId = async (column) => {
 
         return result.value
     } catch (error) {
+        console.log('This is error')
+
         throw new ServerError(error)
     }
 }
 
-export default { create, findById, pushColumnOrderId }
+export default { create, findById, pushColumnOrderId, updateColumnOrderIds }

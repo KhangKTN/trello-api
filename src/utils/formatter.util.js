@@ -9,3 +9,16 @@ export const slugify = (val) => {
         .replace(/\s+/g, '-') // replace spaces with hyphens
         .replace(/-+/g, '-') // remove consecutive hyphens
 }
+
+/*
+    Create new empty card (placeholder-card) and it will invisible
+    Purpose is keep least 1 card in empty column to can drag card form other column drop into
+*/
+export const createPlaceholderCard = (column) => {
+    return {
+        _id: `${column._id}-placeholder-card`,
+        boardId: column.boardId,
+        columnId: column._id,
+        isPlaceholder: true
+    }
+}

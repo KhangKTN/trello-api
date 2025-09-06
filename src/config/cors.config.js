@@ -16,5 +16,6 @@ export const corsOptions = {
         return cb(new ApiError(StatusCodes.FORBIDDEN, `${origin} not allowed by CORS policy`), false)
     },
     // Pass request from cookies
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }
