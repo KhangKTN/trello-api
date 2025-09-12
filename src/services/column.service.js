@@ -5,6 +5,7 @@ import { cardModel } from '~/models/Card.model'
 import { columnModel } from '~/models/Column.model'
 import { ApiError, ServerError } from '~/utils/error.util'
 import boardService from './board.service'
+import cardService from './card.service'
 
 const create = async (data) => {
     try {
@@ -40,21 +41,48 @@ const findById = async (_id) => {
 }
 
 const updateCardOrderIds = async (data) => {
-    const { cardId, sourceColumnId, targetColumnId, cardOrderIds } = data
+    const { card, sourceColumnId, targetColumnId, cardOrderIds } = data
     try {
-        if (!cardId || !sourceColumnId || !targetColumnId || !cardOrderIds?.length) {
+        if (!card || !sourceColumnId || !targetColumnId || !cardOrderIds?.length) {
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Data required is missing.')
         }
+        const updateOrderIds = cardOrderIds.map((id) => ObjectId.createFromHexString(id))
 
+        /**
+         * If drag and drop into Column
+         */
         if (sourceColumnId === targetColumnId) {
             await GET_DB()
                 .collection(columnModel.COLUMN_COLLECTION_NAME)
                 .findOneAndUpdate(
                     { _id: ObjectId.createFromHexString(sourceColumnId) },
-                    { $set: { cardOrderIds: cardOrderIds } },
+                    { $set: { cardOrderIds: updateOrderIds, updatedAt: Date.now() } },
                     { returnDocument: 'after' }
                 )
+            return
         }
+
+        // Remove cardId from column source
+        await GET_DB()
+            .collection(columnModel.COLUMN_COLLECTION_NAME)
+            .findOneAndUpdate(
+                { _id: ObjectId.createFromHexString(sourceColumnId) },
+                { $pull: { cardOrderIds: card._id } },
+                { returnDocument: 'after' }
+            )
+
+        // Update new orderIds for target column
+        await GET_DB()
+            .collection(columnModel.COLUMN_COLLECTION_NAME)
+            .findOneAndUpdate(
+                { _id: ObjectId.createFromHexString(targetColumnId) },
+                { $set: { cardOrderIds: updateOrderIds, updatedAt: Date.now() } },
+                { returnDocument: 'after' }
+            )
+
+        // Update Card data
+        await cardService.update(card)
+
         return true
     } catch (error) {
         throw new ServerError(error)
@@ -64,15 +92,13 @@ const updateCardOrderIds = async (data) => {
 // Push cardId into cardOrderIds when add new card
 const pushCardOrderId = async (card) => {
     try {
-        const result = await GET_DB()
+        return await GET_DB()
             .collection(columnModel.COLUMN_COLLECTION_NAME)
             .findOneAndUpdate(
                 { _id: card.columnId },
                 { $push: { cardOrderIds: card._id } },
                 { returnDocument: 'after' }
             )
-
-        return result.value
     } catch (error) {
         throw new ServerError(error)
     }

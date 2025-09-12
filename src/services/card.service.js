@@ -36,4 +36,29 @@ const findById = async (_id) => {
     }
 }
 
-export default { create }
+const update = async (card) => {
+    try {
+        const cardValid = await cardModel.validateBeforeSave(card)
+
+        cardValid.boardId = ObjectId.createFromHexString(card.boardId)
+        cardValid.columnId = ObjectId.createFromHexString(card.columnId)
+        delete cardValid['_id']
+
+        return await GET_DB()
+            .collection(cardModel.CARD_COLLECTION_NAME)
+            .findOneAndUpdate(
+                { _id: ObjectId.createFromHexString(card._id) },
+                {
+                    $set: {
+                        ...cardValid,
+                        updatedAt: Date.now()
+                    }
+                },
+                { returnDocument: 'after' }
+            )
+    } catch (error) {
+        throw new ServerError(error)
+    }
+}
+
+export default { create, update }

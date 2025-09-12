@@ -19,9 +19,9 @@ const getDetail = async (req, res) => {
     return res.status(StatusCodes.OK).send({ message: 'Get board by ID successfully!', data })
 }
 
-const updateColumnOrderIds = async (req, res) => {
-    const data = await boardService.updateColumnOrderIds(req.body)
+const update = async (req, res) => {
+    const data = await boardService.updateColumn(req.body)
     return res.status(StatusCodes.CREATED).send({ message: 'Update order columns in board succeed!', data })
 }
 
-export default { create, getDetail, updateColumnOrderIds }
+export default { create, getDetail, update }

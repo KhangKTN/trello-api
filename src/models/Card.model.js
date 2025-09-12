@@ -17,7 +17,7 @@ const cardSchema = Joi.object({
 
 const validateBeforeSave = async (data) => {
     try {
-        return await cardSchema.validateAsync(data, { abortEarly: false })
+        return await cardSchema.validateAsync(data, { abortEarly: false, stripUnknown: true })
     } catch (error) {
         throw new ApiError(StatusCodes.BAD_REQUEST, error.details.map((e) => e.message).join(', '))
     }

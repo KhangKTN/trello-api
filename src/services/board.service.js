@@ -70,17 +70,25 @@ const findById = async (id) => {
     }
 }
 
-const updateColumnOrderIds = async ({ boardId, columnOrderIds }) => {
-    const updateOrderIds = columnOrderIds.map((id) => ObjectId.createFromHexString(id))
+const update = async (data) => {
     try {
-        const result = await GET_DB()
+        const updateData = { ...data }
+
+        // Remove fields not allow update
+        const fieldsUpdate = ['title', 'description', 'type', 'columnOrderIds', 'updatedAt', '_isDestroy']
+        Object.keys(updateData).forEach((key) => {
+            if (!fieldsUpdate.includes(key)) {
+                delete updateData[key]
+            }
+        })
+
+        return await GET_DB()
             .collection(boardModal.BOARD_COLLECTION_NAME)
             .findOneAndUpdate(
-                { _id: ObjectId.createFromHexString(boardId) },
-                { $set: { columnOrderIds: updateOrderIds } },
+                { _id: ObjectId.createFromHexString(data.boardId) },
+                { $set: { ...updateData, updatedAt: Date.now() } },
                 { returnDocument: 'after' }
             )
-        return result
     } catch (error) {
         throw new ServerError(error)
     }
@@ -89,20 +97,16 @@ const updateColumnOrderIds = async ({ boardId, columnOrderIds }) => {
 // Push columnId into columnOrderIds when add new column
 const pushColumnOrderId = async (column) => {
     try {
-        const result = await GET_DB()
+        return await GET_DB()
             .collection(boardModal.BOARD_COLLECTION_NAME)
             .findOneAndUpdate(
                 { _id: column.boardId },
                 { $push: { columnOrderIds: column._id } },
                 { returnDocument: 'after' }
             )
-
-        return result.value
     } catch (error) {
-        console.log('This is error')
-
         throw new ServerError(error)
     }
 }
 
-export default { create, findById, pushColumnOrderId, updateColumnOrderIds }
+export default { create, findById, pushColumnOrderId, update }

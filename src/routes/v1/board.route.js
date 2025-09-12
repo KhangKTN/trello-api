@@ -5,6 +5,6 @@ export const boardRoute = (fastify, _, done) => {
     fastify
         .get('/:id', boardController.getDetail)
         .post('/', boardValidate, boardController.create)
-        .put('/update-column-order-ids', boardController.updateColumnOrderIds)
+        .put('/update-column-order-ids', boardController.update)
     done()
 }
