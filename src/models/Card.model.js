@@ -23,7 +23,7 @@ const validateBeforeSave = async (data) => {
     }
 }
 
-export const cardModel = {
+export default {
     CARD_COLLECTION_NAME,
     cardSchema,
     validateBeforeSave

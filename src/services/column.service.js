@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb.config'
 import { cardModel } from '~/models/Card.model'
-import { columnModel } from '~/models/Column.model'
+import ColumnModel from '~/models/Column.model'
 import { ApiError, ServerError } from '~/utils/error.util'
 import boardService from './board.service'
 import cardService from './card.service'
@@ -10,9 +10,9 @@ import cardService from './card.service'
 const create = async (data) => {
     try {
         const newColumn = { ...data }
-        const columnValid = await columnModel.validateBeforeSave(newColumn)
+        const columnValid = await ColumnModel.validateBeforeSave(newColumn)
         const createdColumn = await GET_DB()
-            .collection(columnModel.COLUMN_COLLECTION_NAME)
+            .collection(ColumnModel.COLUMN_COLLECTION_NAME)
             .insertOne({ ...columnValid, boardId: ObjectId.createFromHexString(columnValid.boardId) })
 
         const columnDb = await findById(createdColumn.insertedId)
@@ -34,7 +34,7 @@ const findById = async (_id) => {
         if (!_id) {
             throw new ApiError(StatusCodes.BAD_REQUEST, 'Missing ID')
         }
-        return await GET_DB().collection(columnModel.COLUMN_COLLECTION_NAME).findOne({ _id })
+        return await GET_DB().collection(ColumnModel.COLUMN_COLLECTION_NAME).findOne({ _id })
     } catch (error) {
         throw new ServerError(error)
     }
@@ -42,21 +42,17 @@ const findById = async (_id) => {
 
 const updateCardOrderIds = async (data) => {
     const { card, sourceColumnId, targetColumnId, cardOrderIds } = data
-    try {
-        if (!card || !sourceColumnId || !targetColumnId || !cardOrderIds?.length) {
-            throw new ApiError(StatusCodes.BAD_REQUEST, 'Data required is missing.')
-        }
-        const updateOrderIds = cardOrderIds.map((id) => ObjectId.createFromHexString(id))
 
+    try {
         /**
          * If drag and drop into Column
          */
         if (sourceColumnId === targetColumnId) {
             await GET_DB()
-                .collection(columnModel.COLUMN_COLLECTION_NAME)
+                .collection(ColumnModel.COLUMN_COLLECTION_NAME)
                 .findOneAndUpdate(
                     { _id: ObjectId.createFromHexString(sourceColumnId) },
-                    { $set: { cardOrderIds: updateOrderIds, updatedAt: Date.now() } },
+                    { $set: { cardOrderIds: cardOrderIds, updatedAt: Date.now() } },
                     { returnDocument: 'after' }
                 )
             return
@@ -64,7 +60,7 @@ const updateCardOrderIds = async (data) => {
 
         // Remove cardId from column source
         await GET_DB()
-            .collection(columnModel.COLUMN_COLLECTION_NAME)
+            .collection(ColumnModel.COLUMN_COLLECTION_NAME)
             .findOneAndUpdate(
                 { _id: ObjectId.createFromHexString(sourceColumnId) },
                 { $pull: { cardOrderIds: card._id } },
@@ -73,10 +69,10 @@ const updateCardOrderIds = async (data) => {
 
         // Update new orderIds for target column
         await GET_DB()
-            .collection(columnModel.COLUMN_COLLECTION_NAME)
+            .collection(ColumnModel.COLUMN_COLLECTION_NAME)
             .findOneAndUpdate(
                 { _id: ObjectId.createFromHexString(targetColumnId) },
-                { $set: { cardOrderIds: updateOrderIds, updatedAt: Date.now() } },
+                { $set: { cardOrderIds: cardOrderIds, updatedAt: Date.now() } },
                 { returnDocument: 'after' }
             )
 

@@ -1,15 +1,16 @@
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb.config'
-import { cardModel } from '~/models/Card.model'
+import CardModel from '~/models/Card.model'
 import { ServerError } from '~/utils/error.util'
+import cardValidation from '~/validations/card.validation'
 import columnService from './column.service'
 
 const create = async (data) => {
     try {
         const newCard = { ...data }
-        const cardValid = await cardModel.validateBeforeSave(newCard)
+        const cardValid = await CardModel.validateBeforeSave(newCard)
         const createdCard = await GET_DB()
-            .collection(cardModel.CARD_COLLECTION_NAME)
+            .collection(CardModel.CARD_COLLECTION_NAME)
             .insertOne({
                 ...cardValid,
                 boardId: ObjectId.createFromHexString(cardValid.boardId),
@@ -30,7 +31,7 @@ const create = async (data) => {
 
 const findById = async (_id) => {
     try {
-        return await GET_DB().collection(cardModel.CARD_COLLECTION_NAME).findOne({ _id })
+        return await GET_DB().collection(CardModel.CARD_COLLECTION_NAME).findOne({ _id })
     } catch (error) {
         throw new ServerError(error)
     }
@@ -38,14 +39,18 @@ const findById = async (_id) => {
 
 const update = async (card) => {
     try {
-        const cardValid = await cardModel.validateBeforeSave(card)
+        const cardValid = await cardValidation.cardUpdate.validateAsync(card, { stripUnknown: true })
 
-        cardValid.boardId = ObjectId.createFromHexString(card.boardId)
-        cardValid.columnId = ObjectId.createFromHexString(card.columnId)
+        if (cardValid.boardId) {
+            cardValid.boardId = ObjectId.createFromHexString(card.boardId)
+        }
+        if (cardValid.columnId) {
+            cardValid.columnId = ObjectId.createFromHexString(card.columnId)
+        }
         delete cardValid['_id']
 
         return await GET_DB()
-            .collection(cardModel.CARD_COLLECTION_NAME)
+            .collection(CardModel.CARD_COLLECTION_NAME)
             .findOneAndUpdate(
                 { _id: ObjectId.createFromHexString(card._id) },
                 {

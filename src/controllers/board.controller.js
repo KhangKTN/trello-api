@@ -20,7 +20,7 @@ const getDetail = async (req, res) => {
 }
 
 const update = async (req, res) => {
-    const data = await boardService.updateColumn(req.body)
+    const data = await boardService.update(req.body)
     return res.status(StatusCodes.CREATED).send({ message: 'Update order columns in board succeed!', data })
 }
 

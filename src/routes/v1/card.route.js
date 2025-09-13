@@ -1,7 +1,7 @@
 import cardController from '~/controllers/card.controller'
-import { cardValidate } from '~/validations/card.validation'
+import cardValidation from '~/validations/card.validation'
 
 export const cardRoute = (fastify, _, done) => {
-    fastify.post('/', cardValidate, cardController.create)
+    fastify.post('/', { preHandler: fastify.validate(cardValidation.cardCreate, 'body') }, cardController.create)
     done()
 }

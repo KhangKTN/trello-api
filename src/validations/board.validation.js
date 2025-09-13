@@ -1,15 +1,19 @@
 import Joi from 'joi'
-import { BOARD_TYPES } from '~/utils/constant.util'
+import BoardModel from '~/models/Board.model'
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/rule.util'
 
-const boardSchema = Joi.object({
-    title: Joi.string().required().max(50).trim(),
-    description: Joi.string().required().min(3).max(500).trim(),
-    type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required()
+const boardCreate = Joi.object({
+    title: BoardModel.boardSchema.extract('title'),
+    description: BoardModel.boardSchema.extract('description'),
+    type: BoardModel.boardSchema.extract('type')
 })
 
-export const boardValidate = {
-    schema: { body: boardSchema },
-    validatorCompiler: ({ schema }) => {
-        return (data) => schema.validate(data, { abortEarly: false })
-    }
-}
+const boardUpdate = Joi.object({
+    _id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+    title: BoardModel.boardSchema.extract('title'),
+    description: BoardModel.boardSchema.extract('description'),
+    type: BoardModel.boardSchema.extract('description'),
+    columnOrderIds: Joi.array().items(Joi.string())
+})
+
+export default { boardCreate, boardUpdate }

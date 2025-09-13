@@ -6,6 +6,7 @@ import { CLOSE_CONNECT, CONNECT_DB } from '~/config/mongodb.config'
 import { homeRoute } from '~/routes/v1'
 import { corsOptions } from './config/cors.config'
 import errorHandlerMiddleware from './middlewares/error-handler.middleware'
+import fastifyJoi from './providers/fastify-joi'
 import { boardRoute } from './routes/v1/board.route'
 import { cardRoute } from './routes/v1/card.route'
 import { columnRoute } from './routes/v1/column.route'
@@ -15,6 +16,9 @@ const fastify = Fastify({
 })
 
 fastify.setErrorHandler(errorHandlerMiddleware.errorHandler)
+
+// Register middleware validate with Joi
+fastify.register(fastifyJoi)
 
 const START_SERVER = () => {
     const hostname = env.APP_HOST

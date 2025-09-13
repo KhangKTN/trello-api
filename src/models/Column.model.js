@@ -22,7 +22,7 @@ const validateBeforeSave = async (data) => {
     }
 }
 
-export const columnModel = {
+export default {
     COLUMN_COLLECTION_NAME,
     columnSchema,
     validateBeforeSave

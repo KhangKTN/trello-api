@@ -1,14 +1,26 @@
 import Joi from 'joi'
+import CardModel from '~/models/Card.model'
+import ColumnModel from '~/models/Column.model'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/rule.util'
+import cardValidation from './card.validation'
 
-const columnSchema = Joi.object({
-    title: Joi.string().required().trim().max(50).message('Title is not blank and maximum 50 character'),
-    boardId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+const columnCreate = Joi.object({
+    title: ColumnModel.columnSchema.extract('title'),
+    boardId: ColumnModel.columnSchema.extract('boardId')
 })
 
-export const columnValidate = {
-    schema: { body: columnSchema },
-    validatorCompiler: ({ schema }) => {
-        return (data) => schema.validate(data, { abortEarly: false })
-    }
-}
+const columnUpdate = Joi.object({
+    _id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+    title: ColumnModel.columnSchema.extract('title'),
+    boardId: ColumnModel.columnSchema.extract('boardId'),
+    cardOrderIds: ColumnModel.columnSchema.extract('cardOrderIds')
+})
+
+const updateCardOrderIds = Joi.object({
+    card: cardValidation.cardUpdate,
+    sourceColumnId: CardModel.cardSchema.extract('columnId'),
+    targetColumnId: CardModel.cardSchema.extract('columnId'),
+    cardOrderIds: ColumnModel.columnSchema.extract('cardOrderIds')
+})
+
+export default { columnCreate, columnUpdate, updateCardOrderIds }

@@ -1,9 +1,9 @@
 import { cloneDeep } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb.config'
-import boardModal from '~/models/Board.model'
-import { cardModel } from '~/models/Card.model'
-import { columnModel } from '~/models/Column.model'
+import BoardModal from '~/models/Board.model'
+import CardModel from '~/models/Card.model'
+import ColumnModel from '~/models/Column.model'
 import { ServerError } from '~/utils/error.util'
 import { createPlaceholderCard, slugify } from '~/utils/formatter.util'
 
@@ -13,8 +13,8 @@ const create = async (data) => {
             ...data,
             slug: slugify(data?.title)
         }
-        const validData = await boardModal.validateBeforeSave(newBoard)
-        const createdBoard = await GET_DB().collection(boardModal.BOARD_COLLECTION_NAME).insertOne(validData)
+        const validData = await BoardModal.validateBeforeSave(newBoard)
+        const createdBoard = await GET_DB().collection(BoardModal.BOARD_COLLECTION_NAME).insertOne(validData)
 
         return await findById(createdBoard?.insertedId.toString())
     } catch (error) {
@@ -25,12 +25,12 @@ const create = async (data) => {
 const findById = async (id) => {
     try {
         const board = await GET_DB()
-            .collection(boardModal.BOARD_COLLECTION_NAME)
+            .collection(BoardModal.BOARD_COLLECTION_NAME)
             .aggregate([
                 { $match: { _id: ObjectId.createFromHexString(id), _isDestroy: false } },
                 {
                     $lookup: {
-                        from: columnModel.COLUMN_COLLECTION_NAME,
+                        from: ColumnModel.COLUMN_COLLECTION_NAME,
                         localField: '_id',
                         foreignField: 'boardId',
                         as: 'columns'
@@ -38,7 +38,7 @@ const findById = async (id) => {
                 },
                 {
                     $lookup: {
-                        from: cardModel.CARD_COLLECTION_NAME,
+                        from: CardModel.CARD_COLLECTION_NAME,
                         localField: '_id',
                         foreignField: 'boardId',
                         as: 'cards'
@@ -73,19 +73,12 @@ const findById = async (id) => {
 const update = async (data) => {
     try {
         const updateData = { ...data }
-
-        // Remove fields not allow update
-        const fieldsUpdate = ['title', 'description', 'type', 'columnOrderIds', 'updatedAt', '_isDestroy']
-        Object.keys(updateData).forEach((key) => {
-            if (!fieldsUpdate.includes(key)) {
-                delete updateData[key]
-            }
-        })
+        delete updateData['_id']
 
         return await GET_DB()
-            .collection(boardModal.BOARD_COLLECTION_NAME)
+            .collection(BoardModal.BOARD_COLLECTION_NAME)
             .findOneAndUpdate(
-                { _id: ObjectId.createFromHexString(data.boardId) },
+                { _id: ObjectId.createFromHexString(data._id) },
                 { $set: { ...updateData, updatedAt: Date.now() } },
                 { returnDocument: 'after' }
             )
@@ -98,7 +91,7 @@ const update = async (data) => {
 const pushColumnOrderId = async (column) => {
     try {
         return await GET_DB()
-            .collection(boardModal.BOARD_COLLECTION_NAME)
+            .collection(BoardModal.BOARD_COLLECTION_NAME)
             .findOneAndUpdate(
                 { _id: column.boardId },
                 { $push: { columnOrderIds: column._id } },
