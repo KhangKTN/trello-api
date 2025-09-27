@@ -66,4 +66,16 @@ const update = async (card) => {
     }
 }
 
-export default { create, update }
+const remove = async (cardId) => {
+    try {
+        const { deletedCount } = await GET_DB()
+            .collection(CardModel.CARD_COLLECTION_NAME)
+            .deleteOne({ _id: ObjectId.createFromHexString(cardId) })
+
+        return deletedCount > 0
+    } catch (error) {
+        throw new ServerError(error)
+    }
+}
+
+export default { create, update, remove }

@@ -1,6 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import { BOARD_TYPES } from '~/utils/constant.util'
 import { ApiError } from '~/utils/error.util'
+import { OBJECT_ID_TYPE } from '~/utils/rule.util'
 
 const Joi = require('joi')
 
@@ -11,7 +12,7 @@ const boardSchema = Joi.object({
     slug: Joi.string().required().trim(),
     description: Joi.string().min(3).max(500).trim(),
     type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required(),
-    columnOrderIds: Joi.array().items(Joi.string()).default([]),
+    columnOrderIds: Joi.array().items(OBJECT_ID_TYPE).default([]),
     createdAt: Joi.date().timestamp('javascript').default(Date.now()),
     updatedAt: Joi.date().timestamp('javascript').default(null),
     _isDestroy: Joi.boolean().default(false)

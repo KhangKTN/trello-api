@@ -13,10 +13,12 @@ const updateCardOrder = async (req, res) => {
 
 const deleteColumn = async (req, res) => {
     const columnId = req.params.id
-    const deleteSuccess = await columnService.deleteColumn(columnId)
-    return res
-        .status(StatusCodes.OK)
-        .send({ message: deleteSuccess ? 'Deleted column succeed!' : 'Deleted column failed!' })
+    const deleted = await columnService.deleteColumn(columnId)
+
+    if (!deleted) {
+        return res.status(StatusCodes.NOT_FOUND).send({ message: 'Delete column failed!' })
+    }
+    return res.status(StatusCodes.OK).send({ message: 'Deleted column succeed!' })
 }
 
 export default { create, updateCardOrder, deleteColumn }

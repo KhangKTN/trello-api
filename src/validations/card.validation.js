@@ -1,6 +1,6 @@
 import Joi from 'joi'
 import CardModel from '~/models/Card.model'
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/rule.util'
+import { OBJECT_ID_TYPE } from '~/utils/rule.util'
 
 const cardCreate = Joi.object({
     title: CardModel.cardSchema.extract('title'),
@@ -9,7 +9,7 @@ const cardCreate = Joi.object({
 })
 
 const cardUpdate = Joi.object({
-    _id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+    _id: OBJECT_ID_TYPE,
     title: CardModel.cardSchema.extract('title').optional(),
     boardId: CardModel.cardSchema.extract('boardId').optional(),
     columnId: CardModel.cardSchema.extract('columnId').optional(),

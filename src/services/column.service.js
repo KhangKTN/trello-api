@@ -89,7 +89,7 @@ const updateCardOrderIds = async (data) => {
 const pushCardOrderId = async (card) => {
     try {
         return await GET_DB()
-            .collection(columnModel.COLUMN_COLLECTION_NAME)
+            .collection(ColumnModel.COLUMN_COLLECTION_NAME)
             .findOneAndUpdate(
                 { _id: card.columnId },
                 { $push: { cardOrderIds: card._id } },
@@ -103,11 +103,14 @@ const pushCardOrderId = async (card) => {
 const deleteColumn = async (columnId) => {
     try {
         // Delete column
-        const result = await GET_DB().collection(columnModel.COLUMN_COLLECTION_NAME).deleteOne({ _id: columnId })
+        const { deletedCount } = await GET_DB()
+            .collection(ColumnModel.COLUMN_COLLECTION_NAME)
+            .deleteOne({ _id: columnId })
+
         // Delete all card in column
         await GET_DB().collection(cardModel.CARD_COLLECTION_NAME).deleteMany({ columnId: columnId })
 
-        return result.deletedCount > 0
+        return deletedCount > 0
     } catch (error) {
         throw new ServerError(error)
     }

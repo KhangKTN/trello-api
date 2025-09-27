@@ -1,14 +1,14 @@
 import { StatusCodes } from 'http-status-codes'
 import Joi from 'joi'
 import { ApiError } from '~/utils/error.util'
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/rule.util'
+import { OBJECT_ID_TYPE } from '~/utils/rule.util'
 
 const COLUMN_COLLECTION_NAME = 'columns'
 
 const columnSchema = Joi.object({
-    boardId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+    boardId: OBJECT_ID_TYPE,
     title: Joi.string().required().max(50).trim(),
-    cardOrderIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)).default([]),
+    cardOrderIds: Joi.array().items(OBJECT_ID_TYPE).default([]),
     createdAt: Joi.date().timestamp('javascript').default(Date.now),
     updatedAt: Joi.date().timestamp('javascript').default(null),
     _isDestroy: Joi.boolean().default(false)
